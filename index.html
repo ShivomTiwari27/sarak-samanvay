@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SarakSamanvay - Cognitive Urban Co-Digging Portal</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-mode">
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <i data-lucide="merge" class="logo-icon"></i>
+          <div>
+            <h1>SarakSamanvay</h1>
+            <span class="logo-subtext">Cognitive Urban Twin</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="model-badge">
+        <div class="pulse-indicator"></div>
+        <div>
+          <span class="badge-title">Cognitive Agent</span>
+          <span class="badge-value">Llama 3.1 + GraphRAG</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <button class="nav-btn active" data-tab="dashboard">
+              <i data-lucide="layout-dashboard"></i>
+              <span>Dashboard</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-btn" data-tab="map-view">
+              <i data-lucide="map"></i>
+              <span>Map & Knowledge Graph</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-btn" data-tab="cognitive-chat">
+              <i data-lucide="message-square-code"></i>
+              <span>Cognitive Chat</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-btn" data-tab="permits">
+              <i data-lucide="file-text"></i>
+              <span>Coordination Permits</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="agency-profile">
+          <div class="profile-avatar">PWD</div>
+          <div class="profile-info">
+            <span class="profile-name">PWD Ujjain Division</span>
+            <span class="profile-role">Municipal Approver</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top header bar -->
+      <header class="top-bar">
+        <div class="search-bar-container">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" placeholder="Search roads, permits, or agencies..." id="global-search">
+        </div>
+        <div class="top-bar-actions">
+          <button class="btn btn-secondary" id="trigger-permit-modal">
+            <i data-lucide="plus-circle"></i>
+            <span>Submit Permit Request</span>
+          </button>
+          <div class="notification-trigger">
+            <i data-lucide="bell"></i>
+            <span class="notification-badge" id="alert-badge-count">3</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- TAB 1: DASHBOARD -->
+      <section id="dashboard-tab" class="tab-content active">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon-wrapper blue">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <div class="stat-data">
+              <span class="stat-value" id="stat-prevented">14</span>
+              <span class="stat-label">Diggings Prevented</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrapper green">
+              <i data-lucide="indian-rupee"></i>
+            </div>
+            <div class="stat-data">
+              <span class="stat-value" id="stat-savings">42.8L</span>
+              <span class="stat-label">Public Funds Saved</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrapper orange">
+              <i data-lucide="cable"></i>
+            </div>
+            <div class="stat-data">
+              <span class="stat-value" id="stat-active-codig">4</span>
+              <span class="stat-label">Active Co-Digging Zones</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrapper red">
+              <i data-lucide="lock"></i>
+            </div>
+            <div class="stat-data">
+              <span class="stat-value" id="stat-lockin">8</span>
+              <span class="stat-label">Roads Under Lock-in</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-body">
+          <!-- Left Column: Open Co-Dig opportunities & Active Projects -->
+          <div class="dashboard-left">
+            <div class="card card-glass">
+              <div class="card-header">
+                <h2><i data-lucide="sparkles"></i> High-Priority Co-Digging Opportunities</h2>
+                <span class="badge badge-warning">Action Required</span>
+              </div>
+              <div class="card-body">
+                <div class="opportunities-list" id="opportunities-container">
+                  <!-- Loaded dynamically via JS -->
+                </div>
+              </div>
+            </div>
+
+            <div class="card card-glass mt-4">
+              <div class="card-header">
+                <h2><i data-lucide="git-branch"></i> Active Coordination Operations</h2>
+              </div>
+              <div class="card-body scroll-y max-h-400">
+                <div class="operations-list" id="operations-container">
+                  <!-- Loaded dynamically via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Live Cognitive Feed & Lock-in rules -->
+          <div class="dashboard-right">
+            <div class="card card-glass">
+              <div class="card-header">
+                <h2><i data-lucide="activity"></i> Cognitive Event Stream</h2>
+                <div class="stream-pulse"></div>
+              </div>
+              <div class="card-body scroll-y max-h-350">
+                <div class="notification-stream" id="notification-stream-container">
+                  <!-- Loaded dynamically via JS -->
+                </div>
+              </div>
+            </div>
+
+            <div class="card card-glass mt-4">
+              <div class="card-header">
+                <h2><i data-lucide="lock-keyhole"></i> Active Road Lock-in Registry</h2>
+              </div>
+              <div class="card-body scroll-y max-h-300">
+                <div class="lock-in-list" id="lock-in-container">
+                  <!-- Loaded dynamically via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: MAP & KNOWLEDGE GRAPH -->
+      <section id="map-view-tab" class="tab-content">
+        <div class="split-view-container">
+          <!-- Map Panel (Left) -->
+          <div class="split-panel card card-glass">
+            <div class="panel-header">
+              <h2><i data-lucide="map-pin"></i> 3D-Alike GIS Road Network Map</h2>
+              <div class="map-legend">
+                <span class="legend-item"><span class="legend-dot green"></span>Normal</span>
+                <span class="legend-item"><span class="legend-dot yellow"></span>Planned</span>
+                <span class="legend-item"><span class="legend-dot orange"></span>Digging</span>
+                <span class="legend-item"><span class="legend-dot red"></span>Lock-in</span>
+              </div>
+            </div>
+            <div class="panel-body map-wrapper">
+              <div id="map" style="height: 100%; width: 100%;"></div>
+            </div>
+          </div>
+
+          <!-- Knowledge Graph Panel (Right) -->
+          <div class="split-panel card card-glass">
+            <div class="panel-header">
+              <h2><i data-lucide="network"></i> 20-Domain Neo4j Knowledge Graph</h2>
+              <button class="btn btn-small btn-secondary" id="reset-graph-btn">
+                <i data-lucide="refresh-cw"></i> Reset Graph Focus
+              </button>
+            </div>
+            <div class="panel-body graph-wrapper">
+              <div class="graph-instructions">Drag nodes to explore. Click nodes to trace semantic interdependencies.</div>
+              <svg id="graph-canvas" viewBox="0 0 600 500"></svg>
+              <div class="graph-info-overlay" id="graph-node-info">
+                <h3>Select a domain node</h3>
+                <p>Click any node in the graph to see its system dependencies, linked agencies, and historical impact rules.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: COGNITIVE CHAT -->
+      <section id="cognitive-chat-tab" class="tab-content">
+        <div class="chat-layout-container">
+          <!-- Chat History -->
+          <div class="chat-main card card-glass">
+            <div class="chat-header">
+              <div class="chat-agent-info">
+                <div class="agent-avatar">
+                  <i data-lucide="cpu"></i>
+                </div>
+                <div>
+                  <h2>Llama 3.1 Cognitive Engine</h2>
+                  <p class="agent-status">Online • GraphRAG Enabled (Neo4j Connected)</p>
+                </div>
+              </div>
+              <div class="chat-actions">
+                <button class="btn btn-small btn-secondary" id="clear-chat-btn">
+                  <i data-lucide="trash-2"></i> Clear History
+                </button>
+              </div>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages-container">
+              <!-- Initial Welcome message loaded by JS -->
+            </div>
+
+            <!-- Pipeline Progress Visualizer -->
+            <div class="pipeline-visualizer" id="pipeline-tracker">
+              <div class="pipeline-step" data-step="ingest">
+                <div class="step-icon"><i data-lucide="database"></i></div>
+                <div class="step-label">Ingest</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step" data-step="synchronize">
+                <div class="step-icon"><i data-lucide="git-commit"></i></div>
+                <div class="step-label">Synchronize</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step" data-step="simulate">
+                <div class="step-icon"><i data-lucide="play-circle"></i></div>
+                <div class="step-label">Simulate</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step" data-step="predict">
+                <div class="step-icon"><i data-lucide="trending-up"></i></div>
+                <div class="step-label">Predict</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step" data-step="decide">
+                <div class="step-icon"><i data-lucide="brain-circuit"></i></div>
+                <div class="step-label">Decide</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step" data-step="actuate">
+                <div class="step-icon"><i data-lucide="arrow-right-left"></i></div>
+                <div class="step-label">Actuate</div>
+              </div>
+            </div>
+
+            <!-- Input area -->
+            <div class="chat-input-area">
+              <input type="text" id="chat-input-field" placeholder="Ask a 'What-If' question (e.g., 'What if PHE digs Mahakal Marg in October?')...">
+              <button class="btn btn-primary" id="chat-send-btn">
+                <i data-lucide="send"></i>
+                <span>Ask Llama</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Suggested Queries Panel -->
+          <div class="chat-sidebar card card-glass">
+            <div class="card-header">
+              <h2><i data-lucide="help-circle"></i> Suggested What-If Queries</h2>
+            </div>
+            <div class="card-body">
+              <div class="suggested-queries-list">
+                <button class="suggested-query-btn" data-query="What if PHE digs Mahakal Marg for a pipeline in September 2026?">
+                  <strong>PHE Pipeline @ Mahakal Marg</strong>
+                  <span>Triggers DISCOM and BSNL fiber check.</span>
+                </button>
+                <button class="suggested-query-btn" data-query="What if Telecom lays fiber lines on Freeganj Road in October 2026?">
+                  <strong>Telecom Fiber @ Freeganj Road</strong>
+                  <span>Checks road construction lock-in constraints.</span>
+                </button>
+                <button class="suggested-query-btn" data-query="What if GAIL lays gas pipes near Mahakal Temple Zone in July 2026?">
+                  <strong>GAIL Gas Line @ Temple Zone</strong>
+                  <span>Checks festival crowd mobility interdependencies.</span>
+                </button>
+                <button class="suggested-query-btn" data-query="What if DISCOM installs heavy underground cables on Dewas Gate Road in November 2026?">
+                  <strong>DISCOM Cables @ Dewas Gate</strong>
+                  <span>Checks overlapping sewage upgrades.</span>
+                </button>
+              </div>
+              
+              <div class="cognitive-status-card">
+                <h3>Urban Interdependency</h3>
+                <p>The reasoning engine analyzes links between <strong>20 urban domains</strong> in real-time, preventing the classic "repeated digging" problem by forcing cross-agency synchronization before permit approval.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: PERMITS TABLE -->
+      <section id="permits-tab" class="tab-content">
+        <div class="card card-glass">
+          <div class="card-header flex-between">
+            <h2><i data-lucide="clipboard-list"></i> Road Digging Permits & Coordination Register</h2>
+            <div class="filters">
+              <select id="filter-agency" class="input-select">
+                <option value="all">All Agencies</option>
+                <option value="PHE">PHE / Jal Nigam</option>
+                <option value="DISCOM">DISCOM (Electricity)</option>
+                <option value="Telecom">Telecom (BSNL/Fiber)</option>
+                <option value="GAIL">GAIL (Gas)</option>
+                <option value="PWD">PWD (Municipal)</option>
+              </select>
+              <select id="filter-status" class="input-select">
+                <option value="all">All Statuses</option>
+                <option value="Proposed">Proposed / Under Review</option>
+                <option value="Co-Digging Open">Co-Digging Open</option>
+                <option value="Co-Digging Synced">Co-Digging Synced</option>
+                <option value="Restoring">Restoring Road</option>
+                <option value="Lock-in Active">Lock-in Active</option>
+              </select>
+            </div>
+          </div>
+          <div class="card-body scroll-x">
+            <table class="data-table" id="permits-table">
+              <thead>
+                <tr>
+                  <th>Permit ID</th>
+                  <th>Agency</th>
+                  <th>Road Segment</th>
+                  <th>Proposed Dates</th>
+                  <th>Excavation Type</th>
+                  <th>Estimated Cost</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="permits-table-body">
+                <!-- Loaded dynamically via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: SUBMIT PERMIT -->
+  <div class="modal-overlay" id="permit-modal">
+    <div class="modal card card-glass">
+      <div class="modal-header">
+        <h2><i data-lucide="file-plus"></i> Submit Excavation Permit Application</h2>
+        <button class="btn-close" id="close-permit-modal">&times;</button>
+      </div>
+      <form id="permit-form">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="permit-agency">Applying Agency</label>
+              <select id="permit-agency" class="input-select" required>
+                <option value="PHE">PHE / Jal Nigam (Water & Sewer)</option>
+                <option value="DISCOM">DISCOM (Electricity Distribution)</option>
+                <option value="Telecom">BSNL / Optical Fiber Telecom</option>
+                <option value="GAIL">GAIL (Gas Distribution)</option>
+                <option value="PWD">PWD / Highway Authority</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="permit-road">Target Road Segment</label>
+              <select id="permit-road" class="input-select" required>
+                <!-- Loaded dynamically via JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row mt-3">
+            <div class="form-group col-6">
+              <label for="permit-start-date">Proposed Start Date</label>
+              <input type="date" id="permit-start-date" class="input-text" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="permit-duration">Duration (Days)</label>
+              <input type="number" id="permit-duration" class="input-text" min="1" max="90" placeholder="e.g. 15" required>
+            </div>
+          </div>
+
+          <div class="form-group mt-3">
+            <label for="permit-purpose">Purpose of Excavation & Depth (meters)</label>
+            <input type="text" id="permit-purpose" class="input-text" placeholder="e.g. Laying 400mm drinking water supply pipe at 1.5m depth" required>
+          </div>
+
+          <!-- Interactive conflict analysis report box -->
+          <div class="conflict-check-alert hidden" id="form-conflict-box">
+            <div class="alert-icon"><i data-lucide="alert-triangle"></i></div>
+            <div class="alert-content">
+              <h4 id="form-conflict-title">Conflict Detected!</h4>
+              <p id="form-conflict-desc">Checking for spatial and temporal overlaps...</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancel-permit">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submit-permit-btn">Run Cognitive Analysis & Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: JOINT AGREEMENT / CO-DIG DETAILS -->
+  <div class="modal-overlay" id="agreement-modal">
+    <div class="modal card card-glass max-w-600">
+      <div class="modal-header">
+        <h2><i data-lucide="merge"></i> Joint Digging & Cost-Share Agreement</h2>
+        <button class="btn-close" id="close-agreement-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="agreement-details">
+          <div class="road-badge-header">
+            <span class="road-badge-title" id="agree-road-name">Mahakal Marg</span>
+            <span class="badge badge-success">Cost Savings Active</span>
+          </div>
+
+          <div class="agencies-involved">
+            <div class="agency-box text-center">
+              <div class="agency-badge font-bold" id="agree-agency-1">PHE</div>
+              <span>Primary Excavator</span>
+            </div>
+            <div class="sync-icon"><i data-lucide="arrow-right-left"></i></div>
+            <div class="agency-box text-center">
+              <div class="agency-badge font-bold" id="agree-agency-2">BSNL</div>
+              <span>Co-Applicant</span>
+            </div>
+          </div>
+
+          <div class="cost-breakdown-card">
+            <h3>Financial Savings Model</h3>
+            <div class="cost-row">
+              <span>Standard Excavation Cost (PHE alone)</span>
+              <span id="agree-cost-1">₹8,50,000</span>
+            </div>
+            <div class="cost-row">
+              <span>Standard Excavation Cost (BSNL alone)</span>
+              <span id="agree-cost-2">₹4,20,000</span>
+            </div>
+            <div class="cost-row highlight">
+              <span>Total Standalone Cost</span>
+              <span>₹12,70,000</span>
+            </div>
+            <div class="cost-row divider"></div>
+            <div class="cost-row highlight-green">
+              <span>Co-Digging Joint Cost (Shared Trench)</span>
+              <span id="agree-joint-cost">₹7,20,000</span>
+            </div>
+            <div class="cost-row highlight-savings">
+              <span>Total Taxpayer Savings</span>
+              <span id="agree-savings">₹5,50,000 (43% Saved)</span>
+            </div>
+          </div>
+
+          <div class="coordination-timeline mt-3">
+            <h3>Synchronization Schedule</h3>
+            <div class="timeline-ticks">
+              <div class="tick">
+                <span class="tick-day">Days 1-5</span>
+                <span class="tick-action">Shared Excavation (Trench Digging)</span>
+              </div>
+              <div class="tick">
+                <span class="tick-day">Days 6-10</span>
+                <span class="tick-action" id="agree-timeline-act1">PHE lays 400mm Pipeline</span>
+              </div>
+              <div class="tick">
+                <span class="tick-day">Days 11-13</span>
+                <span class="tick-action" id="agree-timeline-act2">BSNL lays Optical Fiber conduits</span>
+              </div>
+              <div class="tick">
+                <span class="tick-day">Days 14-17</span>
+                <span class="tick-action">Backfilling, Compacting & PWD Road Resurfacing</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lock-in-warning mt-3">
+            <i data-lucide="info"></i>
+            <span>Upon completion, PWD will enforce a <strong>24-Month Lock-in Period</strong>. Road excavation will be strictly prohibited on this segment until <strong id="agree-lock-date">October 2028</strong>.</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="close-agree-btn">Close</button>
+        <button class="btn btn-success" id="sign-agreement-btn">
+          <i data-lucide="pen-tool"></i>
+          <span>Approve Joint Permit</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+  
+  <!-- Custom Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>
