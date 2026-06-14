@@ -1710,3 +1710,171 @@ button, input, select, textarea {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Floating GIS Map HUD Overlay */
+.map-floating-controls {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 1000;
+  width: 250px;
+  padding: 0.85rem 1rem;
+  background: rgba(13, 17, 28, 0.82) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(12px) !important;
+  animation: fadeIn 0.4s ease;
+  pointer-events: auto; /* Ensure inputs click correctly */
+}
+
+.controls-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.controls-header h3 {
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.controls-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.layer-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-main);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-item input[type="checkbox"] {
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.focus-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* Glassmorphic Leaflet Popup Overrides */
+.leaflet-popup-content-wrapper {
+  background: rgba(11, 16, 27, 0.88) !important;
+  border: 1px solid rgba(255, 153, 51, 0.18) !important;
+  border-radius: 10px !important;
+  backdrop-filter: blur(10px) !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+  padding: 0.25rem !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(11, 16, 27, 0.88) !important;
+  border: 1px solid rgba(255, 153, 51, 0.18) !important;
+  border-top: none !important;
+  border-left: none !important;
+}
+
+.map-popup-card {
+  padding: 0.4rem;
+}
+
+.map-popup-card h3 {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.map-popup-card p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+  line-height: 1.3;
+}
+
+.map-popup-card strong {
+  color: var(--text-main);
+}
+
+.map-popup-card button {
+  margin-top: 0.4rem;
+  width: 100%;
+}
+
+/* Radar Pulse Active Excavation Marker Beacon */
+.map-active-beacon {
+  width: 14px;
+  height: 14px;
+  background: var(--color-primary);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--color-primary);
+  position: relative;
+}
+
+.map-active-beacon::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: beacon-wave 1.6s infinite cubic-bezier(0.1, 0.8, 0.3, 1);
+}
+
+@keyframes beacon-wave {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.map-no-invert .leaflet-tile {
+  filter: none !important;
+}
+
+

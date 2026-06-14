@@ -216,6 +216,58 @@
             </div>
             <div class="panel-body map-wrapper">
               <div id="map" style="height: 100%; width: 100%;"></div>
+              
+              <!-- Floating Glass GIS Control Overlay -->
+              <div class="map-floating-controls card-glass">
+                <div class="controls-header">
+                  <h3><i data-lucide="sliders"></i> GIS Map HUD</h3>
+                </div>
+                
+                <div class="controls-section">
+                  <span class="section-label">Basemap View</span>
+                  <select id="map-baselayer-select" class="input-select mt-1 w-full">
+                    <option value="dark">CartoDB Dark Matter</option>
+                    <option value="satellite">Esri Satellite Imagery</option>
+                    <option value="streets">OpenStreetMap Standard</option>
+                  </select>
+                </div>
+
+                <div class="controls-section mt-3">
+                  <span class="section-label">Layer Filters</span>
+                  <div class="layer-toggles">
+                    <label class="toggle-item">
+                      <input type="checkbox" id="toggle-layer-normal" checked>
+                      <span class="legend-dot green"></span>
+                      <span>Clear Roads</span>
+                    </label>
+                    <label class="toggle-item">
+                      <input type="checkbox" id="toggle-layer-planned" checked>
+                      <span class="legend-dot yellow"></span>
+                      <span>Planned Permits</span>
+                    </label>
+                    <label class="toggle-item">
+                      <input type="checkbox" id="toggle-layer-digging" checked>
+                      <span class="legend-dot orange"></span>
+                      <span>Active Digging</span>
+                    </label>
+                    <label class="toggle-item">
+                      <input type="checkbox" id="toggle-layer-lockin" checked>
+                      <span class="legend-dot red"></span>
+                      <span>PWD Lock-in</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="controls-section mt-3">
+                  <span class="section-label">Quick Zoom Focus</span>
+                  <div class="focus-grid">
+                    <button class="btn btn-secondary btn-small map-focus-btn" data-road="road-mahakal">Mahakal</button>
+                    <button class="btn btn-secondary btn-small map-focus-btn" data-road="road-freeganj">Freeganj</button>
+                    <button class="btn btn-secondary btn-small map-focus-btn" data-road="road-dewas">Station</button>
+                    <button class="btn btn-secondary btn-small map-focus-btn" data-road="road-mit">MIT Road</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

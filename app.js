@@ -732,6 +732,9 @@ function focusGraphNode(node) {
 }
 
 // Leaflet GIS Map Setup
+let activeTileLayer = null;
+let activeMarkers = [];
+
 function initMap() {
   // Center map on Ujjain: [23.176, 75.788]
   map = L.map('map', {
@@ -742,23 +745,103 @@ function initMap() {
   
   L.control.zoom({ position: 'topleft' }).addTo(map);
   
-  // Load beautiful dark maps
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 20
-  }).addTo(map);
+  // Basemap definitions
+  const basemaps = {
+    dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }),
+    satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      maxZoom: 18
+    }),
+    streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    })
+  };
+
+  // Add default layer (dark)
+  activeTileLayer = basemaps.dark;
+  activeTileLayer.addTo(map);
+
+  // Basemap switcher listener
+  document.getElementById('map-baselayer-select').addEventListener('change', (e) => {
+    const selected = e.target.value;
+    map.removeLayer(activeTileLayer);
+    
+    // Toggle invert filter on satellite maps
+    const mapDiv = document.getElementById('map');
+    if (selected === 'satellite' || selected === 'streets') {
+      mapDiv.classList.add('map-no-invert');
+    } else {
+      mapDiv.classList.remove('map-no-invert');
+    }
+
+    activeTileLayer = basemaps[selected];
+    activeTileLayer.addTo(map);
+  });
+
+  // Layer filter toggles listeners
+  const filterToggles = ['normal', 'planned', 'digging', 'lockin'];
+  filterToggles.forEach(layerName => {
+    const el = document.getElementById(`toggle-layer-${layerName}`);
+    if (el) {
+      el.addEventListener('change', () => {
+        renderRoadsOnMap();
+      });
+    }
+  });
+
+  // Quick focus buttons click handler
+  document.querySelectorAll('.map-focus-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const roadId = btn.getAttribute('data-road');
+      const road = state.roads.find(r => r.id === roadId);
+      if (road) {
+        // Build mock polyline for bounds calc
+        const polyline = L.polyline(road.coordinates);
+        map.fitBounds(polyline.getBounds(), { padding: [50, 50], maxZoom: 16 });
+        
+        // Open corresponding popup
+        setTimeout(() => {
+          if (roadLayers[road.id]) {
+            roadLayers[road.id].openPopup();
+          }
+        }, 400);
+      }
+    });
+  });
 
   renderRoadsOnMap();
 }
 
 function renderRoadsOnMap() {
-  // Clear any existing layers
-  Object.values(roadLayers).forEach(layer => map.removeLayer(layer));
+  // Clear existing polyline layers
+  Object.keys(roadLayers).forEach(layerKey => {
+    map.removeLayer(roadLayers[layerKey]);
+  });
   roadLayers = {};
   
+  // Clear active markers/beacons
+  activeMarkers.forEach(m => map.removeLayer(m));
+  activeMarkers = [];
+
+  // Read toggle checkbox states (fallback to true if selectors missing)
+  const showNormal = document.getElementById('toggle-layer-normal') ? document.getElementById('toggle-layer-normal').checked : true;
+  const showPlanned = document.getElementById('toggle-layer-planned') ? document.getElementById('toggle-layer-planned').checked : true;
+  const showDigging = document.getElementById('toggle-layer-digging') ? document.getElementById('toggle-layer-digging').checked : true;
+  const showLockin = document.getElementById('toggle-layer-lockin') ? document.getElementById('toggle-layer-lockin').checked : true;
+
   state.roads.forEach(road => {
-    let color = '#2ec4b6'; // normal (greenish-blue)
+    // Check filters
+    if (road.status === 'normal' && !showNormal) return;
+    if (road.status === 'planned' && !showPlanned) return;
+    if (road.status === 'digging' && !showDigging) return;
+    if (road.status === 'lock-in' && !showLockin) return;
+
+    let color = '#2ec4b6'; // normal
     let dash = null;
     
     if (road.status === 'lock-in') {
@@ -767,17 +850,27 @@ function renderRoadsOnMap() {
       color = '#ff9933'; // orange
     } else if (road.status === 'planned') {
       color = '#ffb703'; // yellow
-      dash = '5, 5'; // dashed for planned
+      dash = '6, 6';
     }
     
-    const lineOptions = {
+    // Draw Double Polyline for glowing neon visual effects
+    // 1. Underlayer (glow aura)
+    const glowLine = L.polyline(road.coordinates, {
       color: color,
-      weight: 6,
-      opacity: 0.8,
+      weight: 12,
+      opacity: 0.16,
       dashArray: dash
-    };
+    }).addTo(map);
+    roadLayers[road.id + '-glow'] = glowLine;
     
-    const polyline = L.polyline(road.coordinates, lineOptions).addTo(map);
+    // 2. Toplayer (solid trench core)
+    const polyline = L.polyline(road.coordinates, {
+      color: color,
+      weight: 4,
+      opacity: 0.95,
+      dashArray: dash
+    }).addTo(map);
+    roadLayers[road.id] = polyline;
     
     // Create popup HTML
     let popupHTML = `
@@ -790,7 +883,20 @@ function renderRoadsOnMap() {
       popupHTML += `<p class="popup-lock">🔒 Excavation Lock-in Active until <strong>${road.lockinExpiry}</strong></p>`;
     } else if (road.status === 'digging') {
       const p = state.permits.find(perm => perm.roadId === road.id);
-      popupHTML += `<p class="popup-desc">🏗️ Dug by: <strong>${p ? p.agency : 'Agency'}</strong> for ${p ? p.purpose : 'Work'}</p>`;
+      popupHTML += `<p class="popup-desc">🏗️ Trench dug by: <strong>${p ? p.agency : 'Agency'}</strong></p>`;
+      popupHTML += `<p class="popup-desc">Purpose: <em>${p ? p.purpose : 'Work'}</em></p>`;
+      
+      // Draw radar pulse beacon at starting coordinates
+      const startCoord = road.coordinates[0];
+      const activeIcon = L.divIcon({
+        className: 'map-active-beacon',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+      const beaconMarker = L.marker(startCoord, { icon: activeIcon }).addTo(map);
+      beaconMarker.bindPopup(`<strong>Active Excavation Work</strong><br>${road.name}`);
+      activeMarkers.push(beaconMarker);
+      
     } else if (road.status === 'planned') {
       const p = state.permits.find(perm => perm.roadId === road.id);
       popupHTML += `
@@ -806,7 +912,6 @@ function renderRoadsOnMap() {
     
     popupHTML += `</div>`;
     polyline.bindPopup(popupHTML);
-    roadLayers[road.id] = polyline;
   });
 }
 
