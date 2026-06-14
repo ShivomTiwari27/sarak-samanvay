@@ -229,6 +229,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTabs();
   initGraph();
   initMap();
+  initHudControls();
   
   // Check backend status first
   await checkBackendStatus();
@@ -815,6 +816,47 @@ function initMap() {
   });
 
   renderRoadsOnMap();
+}
+
+function initHudControls() {
+  const hud = document.getElementById('map-hud');
+  const toggleBtn = document.getElementById('btn-toggle-hud');
+  
+  if (toggleBtn && hud) {
+    // Click handler for toggle button
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleHud();
+    });
+
+    // Let user click the entire collapsed circular HUD to expand it
+    hud.addEventListener('click', () => {
+      if (hud.classList.contains('collapsed')) {
+        toggleHud();
+      }
+    });
+  }
+}
+
+function toggleHud() {
+  const hud = document.getElementById('map-hud');
+  const toggleBtn = document.getElementById('btn-toggle-hud');
+  if (!hud || !toggleBtn) return;
+
+  const isCollapsed = hud.classList.toggle('collapsed');
+  const icon = toggleBtn.querySelector('i');
+  
+  if (icon) {
+    if (isCollapsed) {
+      icon.setAttribute('data-lucide', 'sliders');
+      toggleBtn.setAttribute('title', 'Maximize HUD');
+    } else {
+      icon.setAttribute('data-lucide', 'chevron-right');
+      toggleBtn.setAttribute('title', 'Minimize HUD');
+    }
+    // Re-render Lucide icons
+    lucide.createIcons();
+  }
 }
 
 function renderRoadsOnMap() {
