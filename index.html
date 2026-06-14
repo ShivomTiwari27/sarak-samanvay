@@ -23,6 +23,7 @@
 </head>
 <body class="dark-mode">
   <div class="app-container">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -87,6 +88,9 @@
     <main class="main-content">
       <!-- Top header bar -->
       <header class="top-bar">
+        <button class="hamburger-btn" id="btn-toggle-sidebar" title="Toggle Navigation">
+          <i data-lucide="menu"></i>
+        </button>
         <div class="search-bar-container">
           <i data-lucide="search" class="search-icon"></i>
           <input type="text" placeholder="Search roads, permits, or agencies..." id="global-search">

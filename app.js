@@ -227,6 +227,7 @@ let activeFocusedNode = null;
 // Initialize Web Application
 document.addEventListener('DOMContentLoaded', async () => {
   initTabs();
+  initSidebarDrawer();
   initGraph();
   initMap();
   initHudControls();
@@ -359,6 +360,34 @@ function initTabs() {
         setTimeout(() => {
           map.invalidateSize();
         }, 100);
+      }
+    });
+  });
+}
+
+function initSidebarDrawer() {
+  const container = document.querySelector('.app-container');
+  const toggleBtn = document.getElementById('btn-toggle-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const navBtns = document.querySelectorAll('.nav-btn');
+
+  if (toggleBtn && container) {
+    toggleBtn.addEventListener('click', () => {
+      container.classList.toggle('sidebar-active');
+    });
+  }
+
+  if (overlay && container) {
+    overlay.addEventListener('click', () => {
+      container.classList.remove('sidebar-active');
+    });
+  }
+
+  // Also close the sidebar automatically when clicking a nav button on mobile
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (window.innerWidth <= 1024 && container) {
+        container.classList.remove('sidebar-active');
       }
     });
   });
